@@ -1,0 +1,102 @@
+﻿<Window x:Class="MordhauModManager.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MordhauModManager.Views"
+        xmlns:vms="clr-namespace:MordhauModManager.ViewModels"
+        mc:Ignorable="d"
+        Title="Mordhau Mod Manager" 
+        Width="800"
+        Height="450"
+        WindowStartupLocation="CenterScreen"
+        Loaded="Window_Loaded"
+        Closing="Window_Closing">
+
+    <Window.DataContext>
+        <vms:MainViewModel />
+    </Window.DataContext>
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="B2VConverter" />
+    </Window.Resources>
+    
+    <Grid>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <Menu Grid.Row="0">
+            <MenuItem Header="Program">
+                <MenuItem Header="Choose Mordhau Folder" Command="{Binding MordhauFolderSelectCommand}" />
+                <MenuItem Header="Exit" Command="{Binding ExitCommand}" />
+            </MenuItem>
+        </Menu>
+
+        <TabControl Grid.Row="1">
+            <TabItem Header="Available Mods">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <DockPanel Grid.Row="0" Grid.Column="0">
+                        <TextBlock Text="Filter: " Margin="5" VerticalAlignment="Center" />
+                        <TextBox Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsReadyForInput}" Margin="5" HorizontalContentAlignment="Center" />
+                    </DockPanel>
+                    
+                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <TextBlock Grid.Row="0" Text="Sort by" VerticalAlignment="Center" Margin="5" />
+                        <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding SortMethods}" SelectedItem="{Binding SortMethod}" Margin="5" HorizontalContentAlignment="Center" IsEnabled="{Binding IsReadyForInput}" />
+                    </StackPanel>
+
+                    <ListView Grid.Row="1" Grid.ColumnSpan="2" ItemsSource="{Binding AvailableMods}" SelectionMode="Single" SelectedItem="{Binding SelectedAvailableMod}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <DockPanel>
+                                    <Image Source="{Binding Logo.LogoSource}" Width="64" Height="36" />
+                                    <TextBlock Text="{Binding Name}" Margin="5" VerticalAlignment="Center" FontWeight="Bold" FontSize="16" />
+                                    <TextBlock Text="by" VerticalAlignment="Center" Margin="0,5,5,5" />
+                                    <TextBlock Text="{Binding SubmittedBy.Username}" VerticalAlignment="Center" Margin="0,5,5,5" FontWeight="Bold" FontSize="12" />
+                                    <Image Source="/Icons/installed_icon.png" Visibility="{Binding IsInstalled, Converter={StaticResource B2VConverter}}" HorizontalAlignment="Right" Width="32" Height="32" DockPanel.Dock="Right" />
+                                </DockPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                        <ListView.Resources>
+                            <ContextMenu x:Key="ItemContextMenu" IsEnabled="{Binding IsReadyForInput}">
+                                <MenuItem Header="{Binding InstallRemoveText}" Command="{Binding Path=DataContext.InstallRemoveModCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" />
+                            </ContextMenu>
+                        </ListView.Resources>
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                <Setter Property="ContextMenu" Value="{StaticResource ItemContextMenu}" />
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                    </ListView>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Installed Mods">
+                
+            </TabItem>
+            
+            <TabItem Header="Support">
+                
+            </TabItem>
+        </TabControl>
+        
+        <StatusBar Grid.Row="2" Background="CornflowerBlue" Foreground="White" VerticalAlignment="Bottom">
+            <TextBlock Text="{Binding AppStatus, StringFormat=Status: {0}}" />
+        </StatusBar>
+    </Grid>
+</Window>
