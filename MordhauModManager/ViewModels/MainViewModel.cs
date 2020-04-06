@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -38,11 +39,15 @@ namespace MordhauModManager.ViewModels
 
         public ICommand InstallRemoveModCommand { get; }
 
+        public ICommand UpdateModCommand { get; }
+
         public ICommand UninstallModCommand { get; }
 
         public ICommand DonatePayPalCommand { get; }
 
         public ICommand DonatePatreonCommand { get; }
+
+        public ICommand ExitCommand { get; }
 
         public bool IsValidMordhauFolder
         {
@@ -118,6 +123,7 @@ namespace MordhauModManager.ViewModels
         public MainViewModel()
         {
             MordhauFolderSelectCommand = new RelayCommand(ChooseMordhauFolderDialog);
+            ExitCommand = new RelayCommand(() => { System.Windows.Application.Current.Shutdown(); });
             
             AvailableMods = new ObservableCollection<ModObject>();
             AvailableModView = CollectionViewSource.GetDefaultView(AvailableMods);
@@ -125,10 +131,23 @@ namespace MordhauModManager.ViewModels
             AvailableModView.SortDescriptions.Add(new SortDescription("DateAdded", ListSortDirection.Descending));
 
             InstallRemoveModCommand = new RelayCommand(InstallRemoveMod_Click);
-            
+            UpdateModCommand = new RelayCommand(UpdateMod_Click);
 
             DonatePayPalCommand = new RelayCommand(DonatePayPal_Click);
             DonatePatreonCommand = new RelayCommand(DonatePatreon_Click);
+        }
+
+        private async void UpdateMod_Click()
+        {
+            if (SelectedAvailableMod == null)
+                return;
+
+            var modReference = SelectedAvailableMod;
+
+            await RemoveModLogic(modReference);
+            await InstallModLogic(modReference);
+
+            SortMethod = ESortMethod.InstalledOnly;
         }
 
         private void DonatePatreon_Click()
@@ -194,6 +213,7 @@ namespace MordhauModManager.ViewModels
                 {
                     modToInstall.IsInstalled = true;
                     modToInstall.IsInstalling = false;
+                    modToInstall.IsUpdateAvailable = false;
 
                     AvailableModView.Refresh();
                     AppStatus = $"Ready";
@@ -229,6 +249,7 @@ namespace MordhauModManager.ViewModels
                 {
                     modToRemove.IsInstalling = false;
                     modToRemove.IsInstalled = false;
+                    modToRemove.IsUpdateAvailable = false;
                     AvailableModView.Refresh();
 
                     AppStatus = $"Ready";
@@ -251,9 +272,12 @@ namespace MordhauModManager.ViewModels
         {
             if (obj is ModObject mo)
             {
-                var b1 = mo.Name != null && mo.Name.Contains(FilterText, StringComparison.InvariantCultureIgnoreCase);
-                var b2 = SortMethod != ESortMethod.InstalledOnly ||(SortMethod == ESortMethod.InstalledOnly && mo.IsInstalled);
-                return b1 && b2;
+                var DoesNameContainsFilterText = mo.Name != null && mo.Name.Contains(FilterText, StringComparison.InvariantCultureIgnoreCase);
+                var CheckInstalled = SortMethod == ESortMethod.InstalledOnly && mo.IsInstalled;
+                var CheckUpdates = SortMethod == ESortMethod.UpdateAvailable && mo.IsUpdateAvailable && mo.IsInstalled;
+                var CheckRest = SortMethod == ESortMethod.DateAdded || SortMethod == ESortMethod.LastUpdated;
+
+                return DoesNameContainsFilterText && (CheckInstalled || CheckUpdates || CheckRest);
             }
             else
                 return false;
@@ -261,6 +285,13 @@ namespace MordhauModManager.ViewModels
 
         public async void OnLoaded()
         {
+            if(MordhauHelper.IsMordhauRunning())
+            {
+                MessageBox.Show("Mordhau is currently running, please close Mordhau first to reliably install and remove mods!", "Close Mordhau", MessageBoxButton.OK, MessageBoxImage.Warning);
+                System.Windows.Application.Current.Shutdown();
+                return;
+            }
+
             AppStatus = "Looking for Steam...";
 
             MordhauHelper.LocateMordhauAppManifestFile();
@@ -275,15 +306,74 @@ namespace MordhauModManager.ViewModels
             MordhauHelper.LocateMordhauAppManifestFile();
 
             MordhauHelper.MordhauInstallationFolder = SteamHelper.GetInstallDirFromAppManifest(MordhauHelper.MordhauAppManifestFile);
+            if(!Directory.Exists(MordhauHelper.MordhauInstallationFolder))
+            {
+                MessageBox.Show("Unable to find Mordhau installation, please locate the Mordhau Folder yourself in the following dialog.", "Steam not found", MessageBoxButton.OK, MessageBoxImage.Warning);
+                ChooseMordhauFolderDialog();
+                return;
+            }
 
             AppStatus = "Reading mod.io api...";
             ModioHelper.LoadModioAccessToken(MordhauHelper.GetModioPath());
             await LoadMySubscriptions();
             await LoadAvailableMods();
+            await CheckIfModsAreUp2Date();
 
             IsReadyForInput = true;
 
             AppStatus = "Ready";
+        }
+
+        private async Task CheckIfModsAreUp2Date()
+        {
+            bool foundUpdates = false;
+
+            foreach(var mod in AvailableMods.Where(x => x.IsInstalled))
+            {
+                var localModObject = ModioHelper.GetLocalModObject(mod.Id);
+                if(localModObject == null)
+                {
+                    if(MessageBox.Show($"Something is not correct with the mod '{mod.Name}', do you want to reinstall it? If you select no, I will unsubscribe you from the mod and clean up the corrupted files on your disk.", "Corrupt", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+                    {
+                        var res1 = await ModioHelper.RemoveModFromDisk(mod, MordhauHelper.GetModioPath());
+                        var res2 = await ModioHelper.DownloadAndInstallMod(mod, MordhauHelper.GetModioPath());
+
+                        if (res1 && res2)
+                        {
+                            MessageBox.Show("I have successfully re-installed the mod and updated it to the latest version!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                    }
+                    else
+                    {
+                        var res1 = await ModioHelper.UnsubscribeFromModObject(mod);
+                        var res2 = await ModioHelper.RemoveModFromDisk(mod, MordhauHelper.GetModioPath());
+
+                        if(res1 && res2)
+                        {
+                            mod.IsInstalling = false;
+                            mod.IsInstalled = false;
+                            AvailableModView.Refresh();
+
+                            MessageBox.Show("I have successfully unsubscribed you from the mod and removed the corrupted mod files from your disk!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                    }
+                }
+                else
+                {
+                    if(mod.ModFileObject.Version != localModObject.ModFileObject.Version)
+                    {
+                        mod.IsUpdateAvailable = true;
+                        mod.InstallStatusImage = ModObject.UpdateAvailableIcon;
+
+                        foundUpdates = true;
+                    }
+                }
+            }
+
+            if(foundUpdates)
+                SortMethod = ESortMethod.UpdateAvailable;
+
+            AvailableModView.Refresh();
         }
 
         private async Task LoadMySubscriptions()
@@ -352,6 +442,7 @@ namespace MordhauModManager.ViewModels
                     ModioHelper.LoadModioAccessToken(MordhauHelper.GetModioPath());
                     await LoadMySubscriptions();
                     await LoadAvailableMods();
+                    await CheckIfModsAreUp2Date();
 
                     IsReadyForInput = true;
 

@@ -4,6 +4,7 @@
     {
         DateAdded,
         LastUpdated,
-        InstalledOnly
+        InstalledOnly,
+        UpdateAvailable,
     }
 }

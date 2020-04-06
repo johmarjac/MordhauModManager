@@ -37,7 +37,7 @@
         </Menu>
 
         <TabControl Grid.Row="1">
-            <TabItem Header="Available Mods">
+            <TabItem Header="Mods">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto" />
@@ -62,19 +62,41 @@
                     <ListView Grid.Row="1" Grid.ColumnSpan="2" ItemsSource="{Binding AvailableMods}" SelectionMode="Single" SelectedItem="{Binding SelectedAvailableMod}">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <DockPanel>
-                                    <Image Source="{Binding Logo.LogoSource}" Width="64" Height="36" />
-                                    <TextBlock Text="{Binding Name}" Margin="5" VerticalAlignment="Center" FontWeight="Bold" FontSize="16" />
-                                    <TextBlock Text="by" VerticalAlignment="Center" Margin="0,5,5,5" />
-                                    <TextBlock Text="{Binding SubmittedBy.Username}" VerticalAlignment="Center" Margin="0,5,5,5" FontWeight="Bold" FontSize="12" />
-                                    <Image Source="/Icons/installed_icon.png" Visibility="{Binding IsInstalled, Converter={StaticResource B2VConverter}}" HorizontalAlignment="Right" Width="32" Height="32" DockPanel.Dock="Right" />
-                                    <ProgressBar Visibility="{Binding IsInstalling, Converter={StaticResource B2VConverter}}" Value="{Binding InstallProgress}" HorizontalAlignment="Right" DockPanel.Dock="Right" Width="150" Margin="5" />
-                                </DockPanel>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="auto" />
+                                        <RowDefinition Height="auto" />
+                                        <RowDefinition Height="auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="auto" />
+                                        <ColumnDefinition Width="auto" />
+                                        <ColumnDefinition />
+                                        <ColumnDefinition Width="auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Image Grid.Row="0" Grid.Column="0" Grid.RowSpan="3" Source="{Binding LogoSource}" Height="46" />
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Name}" Margin="5,0,5,0" FontWeight="Bold" FontSize="14" />
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ModFileObject.Version, StringFormat=v{0}}" Margin="5,0,5,0" FontSize="12" />
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SubmittedBy.Username}" Margin="5,0,5,0" FontSize="10" />
+                                    <ProgressBar Grid.Row="0" Grid.Column="2" Grid.RowSpan="3" Visibility="{Binding IsInstalling, Converter={StaticResource B2VConverter}}" Value="{Binding InstallProgress}" HorizontalAlignment="Right" Width="150" Margin="5" />
+                                    <Image Grid.Row="0" Grid.Column="3" Grid.RowSpan="3" Source="{Binding InstallStatusImage, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding IsInstalled, Converter={StaticResource B2VConverter}}" HorizontalAlignment="Right" Width="32" Height="32" />
+                                </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
                         <ListView.Resources>
                             <ContextMenu x:Key="ItemContextMenu" IsEnabled="{Binding IsReadyForInput}">
-                                <MenuItem Header="{Binding InstallRemoveText}" Command="{Binding Path=DataContext.InstallRemoveModCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" />
+                                <MenuItem Header="Update Mod" TextBlock.FontWeight="Bold" Command="{Binding Path=DataContext.UpdateModCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" Visibility="{Binding IsUpdateAvailable, Converter={StaticResource B2VConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                    <MenuItem.Icon>
+                                        <Image Source="pack://application:,,,/Icons/updateavailable_icon.png" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Header="{Binding InstallRemoveText}" Command="{Binding Path=DataContext.InstallRemoveModCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}">
+                                    <MenuItem.Icon>
+                                        <Image Source="{Binding InstallRemoveIcon}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
                             </ContextMenu>
                         </ListView.Resources>
                         <ListView.ItemContainerStyle>

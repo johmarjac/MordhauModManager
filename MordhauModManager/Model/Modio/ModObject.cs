@@ -1,5 +1,7 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.ComponentModel;
+using System.Windows.Media.Imaging;
 using WPFCore;
 
 namespace MordhauModManager.Model.Modio
@@ -30,7 +32,10 @@ namespace MordhauModManager.Model.Modio
         [JsonProperty("modfile")]
         public ModfileObject ModFileObject { get; set; }
 
+        [JsonIgnore]
         private bool isInstalled;
+
+        [JsonIgnore]
         public bool IsInstalled
         {
             get => isInstalled;
@@ -42,7 +47,10 @@ namespace MordhauModManager.Model.Modio
             }
         }
 
+        [JsonIgnore]
         private bool isInstalling;
+
+        [JsonIgnore]
         public bool IsInstalling
         {
             get => isInstalling;
@@ -53,7 +61,30 @@ namespace MordhauModManager.Model.Modio
             }
         }
 
+        [JsonIgnore]
+        private bool isUpdateAvailable;
+
+        [JsonIgnore]
+        public bool IsUpdateAvailable
+        {
+            get => isUpdateAvailable;
+            set
+            {
+                isUpdateAvailable = value;
+
+                if (isUpdateAvailable)
+                    InstallStatusImage = UpdateAvailableIcon;
+                else
+                    InstallStatusImage = InstalledIcon;
+
+                OnPropertyChanged(new PropertyChangedEventArgs(nameof(IsUpdateAvailable)));
+            }
+        }
+
+        [JsonIgnore]
         private int installProgress;
+
+        [JsonIgnore]
         public int InstallProgress
         {
             get => installProgress;
@@ -64,9 +95,50 @@ namespace MordhauModManager.Model.Modio
             }
         }
 
+        [JsonIgnore]
+        public BitmapImage LogoSource
+        {
+            get
+            {
+                return new BitmapImage(new Uri(Logo.Thumb_320x180));
+            }
+        }
+
+        [JsonIgnore]
+        private BitmapImage installStatusImage;
+
+        [JsonIgnore]
+        public BitmapImage InstallStatusImage
+        {
+            get => installStatusImage;
+            set
+            {
+                installStatusImage = value;
+                OnPropertyChanged(new PropertyChangedEventArgs(nameof(InstallStatusImage)));
+            }
+        }
+
+        [JsonIgnore]
         public string InstallRemoveText
         {
             get => IsInstalled ? "Uninstall Mod" : "Install Mod";
+        }
+
+        [JsonIgnore]
+        public BitmapImage InstallRemoveIcon
+        {
+            get => IsInstalled ? new BitmapImage(new Uri("pack://application:,,,/Icons/remove_icon.png")) : new BitmapImage(new Uri("pack://application:,,,/Icons/updateavailable_icon.png"));
+        }
+
+        [JsonIgnore]
+        public static BitmapImage InstalledIcon = new BitmapImage(new Uri("pack://application:,,,/Icons/installed_icon.png"));
+
+        [JsonIgnore]
+        public static BitmapImage UpdateAvailableIcon = new BitmapImage(new Uri("pack://application:,,,/Icons/updateavailable_icon.png"));
+
+        public ModObject()
+        {
+            InstallStatusImage = InstalledIcon;
         }
     }
 }

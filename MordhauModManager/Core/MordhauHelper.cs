@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 
 namespace MordhauModManager.Core
 {
@@ -19,6 +20,11 @@ namespace MordhauModManager.Core
                 return null;
 
             return Path.Combine(MordhauInstallationFolder, "Mordhau", "Content", ".modio");
+        }
+
+        public static bool IsMordhauRunning()
+        {
+            return Process.GetProcessesByName("Mordhau-Win64-Shipping").Length > 0;
         }
 
         public static void LocateMordhauAppManifestFile()

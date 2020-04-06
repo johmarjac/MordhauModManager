@@ -1,6 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Windows.Media.Imaging;
 
 namespace MordhauModManager.Model.Modio
 {
@@ -20,13 +18,5 @@ namespace MordhauModManager.Model.Modio
 
         [JsonProperty("thumb_1280x720")]
         public string Thumb_1280x720 { get; set; }
-
-        public BitmapImage LogoSource
-        {
-            get
-            {
-                return new BitmapImage(new Uri(Thumb_320x180));
-            }
-        }
     }
 }

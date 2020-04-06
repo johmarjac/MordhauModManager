@@ -128,6 +128,8 @@ namespace MordhauModManager.Core
                 {
                     if (!Directory.Exists(modFolder))
                         Directory.CreateDirectory(modFolder);
+                    else
+                        Directory.Delete(modFolder, true); // clean previous installation
 
                     var localArchivePath = Path.Combine(modFolder, modObject.ModFileObject.Filename);
 
@@ -167,6 +169,11 @@ namespace MordhauModManager.Core
                     foreach (var dependency in dependencies.ModDependencies)
                     {
                         var mod = await GetMod(dependency.ModId);
+
+                        // Subscribe to mod dependency
+                        var subResult = await SubscribeToModObject(mod);
+                        if (subResult == null)
+                            return false;
 
                         // Install dependency
                         var depResult = await DownloadAndInstallMod(mod, modioFolder);
@@ -209,6 +216,25 @@ namespace MordhauModManager.Core
 
                 return JsonConvert.DeserializeObject<GetModDependenciesResponse>(responseData);
             }
+        }
+
+        public static ModObject GetLocalModObject(int modId)
+        {
+            var modFolder = Path.Combine(MordhauHelper.GetModioPath(), "mods", $"{modId}");
+
+            if (!Directory.Exists(modFolder))
+                return null;
+
+            var file = Path.Combine(modFolder, "modio.json");
+
+            if (!File.Exists(file))
+                return null;
+
+            try
+            {
+                return JsonConvert.DeserializeObject<ModObject>(File.ReadAllText(file));
+            }
+            catch (Exception) { return null; }
         }
     }
 }
