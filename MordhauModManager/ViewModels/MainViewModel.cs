@@ -178,12 +178,15 @@ namespace MordhauModManager.ViewModels
 
         private async Task InstallModLogic(ModObject modToInstall)
         {
+            AppStatus = $"Subscribing to {modToInstall.Name}...";
             modToInstall.IsInstalling = true;
 
             // Subscribe to mod then download and install
             var modObject = await ModioHelper.SubscribeToModObject(modToInstall);
             if (modObject != null)
             {
+                AppStatus = $"Downloading and installing {modToInstall.Name}...";
+
                 // Install mod to mordhau
                 var result = await ModioHelper.DownloadAndInstallMod(modToInstall, MordhauHelper.GetModioPath());
                 
@@ -193,26 +196,32 @@ namespace MordhauModManager.ViewModels
                     modToInstall.IsInstalling = false;
 
                     AvailableModView.Refresh();
+                    AppStatus = $"Ready";
                 }
                 else
                 {
+                    AppStatus = $"Mod Installation failed!";
                     MessageBox.Show("Mod installation failed, please contact developer!", "Installation Failed", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
             else
             {
+                AppStatus = $"Subscribing failed!";
                 MessageBox.Show("Subscribing to the mod failed, please contact developer!", "Subscription Failed", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private async Task RemoveModLogic(ModObject modToRemove)
         {
+            AppStatus = $"Unsubscribing from {modToRemove.Name}...";
             modToRemove.IsInstalling = true;
 
             // Unsubscribe from mod then remove local files
             var result = await ModioHelper.UnsubscribeFromModObject(modToRemove);
             if (result)
             {
+                AppStatus = $"Removing {modToRemove.Name} from disk...";
+
                 // Remove mod from mordhau
                 var result2 = await ModioHelper.RemoveModFromDisk(modToRemove, MordhauHelper.GetModioPath());
 
@@ -221,14 +230,18 @@ namespace MordhauModManager.ViewModels
                     modToRemove.IsInstalling = false;
                     modToRemove.IsInstalled = false;
                     AvailableModView.Refresh();
+
+                    AppStatus = $"Ready";
                 }
                 else
                 {
+                    AppStatus = $"Mod Removal failed!";
                     MessageBox.Show("Uninstalling mod failed, please contact developer!", "Uninstallation Failed", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
             else
             {
+                AppStatus = $"Unsubscribing failed!";
                 MessageBox.Show("Unsubscribing from the mod failed, please contact developer!", "Unsubscription Failed", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -303,7 +316,7 @@ namespace MordhauModManager.ViewModels
 
             while(true)
             {
-                response = await ModioHelper.GetModsAsync(MordhauHelper.MORDHAU_MODIO_GAME_ID, ModioHelper.AccessToken, FilterText, offset);
+                response = await ModioHelper.GetModsAsync(FilterText, offset);
                 offset += response.ResultsAmount;
 
                 foreach (var mod in response.ModObjects)

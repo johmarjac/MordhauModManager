@@ -33,15 +33,15 @@ namespace MordhauModManager.Core
             }
         }
 
-        public static async Task<GetModsResponse> GetModsAsync(int gameId, string accessToken, string filter = "", int offset = 0)
+        public static async Task<GetModsResponse> GetModsAsync(string filter = "", int offset = 0)
         {
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Clear();
                 client.DefaultRequestHeaders.Add("Accept", "application/json");
-                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {AccessToken}");
 
-                var responseData = await client.GetStringAsync(ApiUrl + $"/games/{gameId}/mods?_offset={offset}&_q={filter}");
+                var responseData = await client.GetStringAsync(ApiUrl + $"/games/{MordhauHelper.MORDHAU_MODIO_GAME_ID}/mods?_offset={offset}&_q={filter}");
 
                 return JsonConvert.DeserializeObject<GetModsResponse>(responseData);
             }
@@ -124,7 +124,7 @@ namespace MordhauModManager.Core
 
             try
             {
-                await Task.Run(async () =>
+                return await Task.Run(async () =>
                 {
                     if (!Directory.Exists(modFolder))
                         Directory.CreateDirectory(modFolder);
@@ -144,7 +144,7 @@ namespace MordhauModManager.Core
                                 if (bytesRead > 0)
                                 {
                                     fileWriter.Write(buffer, 0, bytesRead);
-                                    modObject.InstallProgress = (int)(((float)fileWriter.Position / modObject.ModFileObject.FileSize) * 75);
+                                    modObject.InstallProgress = (int)(((float)fileWriter.Position / modObject.ModFileObject.FileSize) * 100);
                                 }
                                 else
                                     break;
@@ -160,13 +160,54 @@ namespace MordhauModManager.Core
 
                     // Serialize mod object to disk
                     File.WriteAllText(Path.Combine(modFolder, "modio.json"), JsonConvert.SerializeObject(modObject, Formatting.Indented));
-                });
 
-                return true;
+                    // Recursively install dependencies
+                    var dependencies = await GetModDependencies(modObject);
+
+                    foreach (var dependency in dependencies.ModDependencies)
+                    {
+                        var mod = await GetMod(dependency.ModId);
+
+                        // Install dependency
+                        var depResult = await DownloadAndInstallMod(mod, modioFolder);
+                        if (!depResult)
+                            return false;
+                    }
+
+                    return true;
+                });
             }
             catch (Exception)
             {
                 return false;
+            }
+        }
+
+        public static async Task<ModObject> GetMod(int modId)
+        {
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Clear();
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {AccessToken}");
+
+                var responseData = await client.GetStringAsync(ApiUrl + $"/games/{MordhauHelper.MORDHAU_MODIO_GAME_ID}/mods/{modId}");
+
+                return JsonConvert.DeserializeObject<ModObject>(responseData);
+            }
+        }
+
+        public static async Task<GetModDependenciesResponse> GetModDependencies(ModObject modObject)
+        {
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Clear();
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {AccessToken}");
+
+                var responseData = await client.GetStringAsync(ApiUrl + $"/games/{MordhauHelper.MORDHAU_MODIO_GAME_ID}/mods/{modObject.Id}/dependencies");
+
+                return JsonConvert.DeserializeObject<GetModDependenciesResponse>(responseData);
             }
         }
     }
