@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -36,6 +37,12 @@ namespace MordhauModManager.ViewModels
         public ICommand MordhauFolderSelectCommand { get; }
 
         public ICommand InstallRemoveModCommand { get; }
+
+        public ICommand UninstallModCommand { get; }
+
+        public ICommand DonatePayPalCommand { get; }
+
+        public ICommand DonatePatreonCommand { get; }
 
         public bool IsValidMordhauFolder
         {
@@ -119,6 +126,44 @@ namespace MordhauModManager.ViewModels
             AvailableModView.SortDescriptions.Add(new SortDescription("DateAdded", ListSortDirection.Descending));
             InstalledMods = new ObservableCollection<ModObject>();
             InstallRemoveModCommand = new RelayCommand(InstallRemoveMod_Click);
+            UninstallModCommand = new RelayCommand(UninstallMod_Click);
+            DonatePayPalCommand = new RelayCommand(DonatePayPal_Click);
+            DonatePatreonCommand = new RelayCommand(DonatePatreon_Click);
+        }
+
+        private void UninstallMod_Click()
+        {
+
+        }
+
+        private void DonatePatreon_Click()
+        {
+            try
+            {
+                using (var p = new Process())
+                {
+                    p.StartInfo.FileName = "https://patreon.com/johmarjac";
+                    p.StartInfo.Verb = "open";
+                    p.StartInfo.UseShellExecute = true;
+                    p.Start();
+                }
+            }
+            catch (Exception) { }
+        }
+
+        private void DonatePayPal_Click()
+        {
+            try
+            {
+                using (var p = new Process())
+                {
+                    p.StartInfo.FileName = "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=YHRLW7F5SRAH8&source=url";
+                    p.StartInfo.Verb = "open";
+                    p.StartInfo.UseShellExecute = true;
+                    p.Start();
+                }
+            }
+            catch (Exception) { }
         }
 
         private void InstallRemoveMod_Click()

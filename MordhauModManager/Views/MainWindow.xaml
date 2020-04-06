@@ -87,11 +87,52 @@
             </TabItem>
 
             <TabItem Header="Installed Mods">
-                
+                <ListView Grid.Row="1" Grid.ColumnSpan="2" ItemsSource="{Binding InstalledMods}" SelectionMode="Single" SelectedItem="{Binding SelectedInstalledMod}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <DockPanel>
+                                <Image Source="{Binding Logo.LogoSource}" Width="64" Height="36" />
+                                <TextBlock Text="{Binding Name}" Margin="5" VerticalAlignment="Center" FontWeight="Bold" FontSize="16" />
+                                <TextBlock Text="by" VerticalAlignment="Center" Margin="0,5,5,5" />
+                                <TextBlock Text="{Binding SubmittedBy.Username}" VerticalAlignment="Center" Margin="0,5,5,5" FontWeight="Bold" FontSize="12" />
+                                <Image Source="/Icons/installed_icon.png" HorizontalAlignment="Right" Width="32" Height="32" DockPanel.Dock="Right" />
+                            </DockPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                    <ListView.Resources>
+                        <ContextMenu x:Key="ItemContextMenu" IsEnabled="{Binding IsReadyForInput}">
+                            <MenuItem Header="Uninstall" Command="{Binding Path=DataContext.UninstallModCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" />
+                        </ContextMenu>
+                    </ListView.Resources>
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="ContextMenu" Value="{StaticResource ItemContextMenu}" />
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                </ListView>
             </TabItem>
             
             <TabItem Header="Support">
-                
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    
+                    <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Button Command="{Binding DonatePayPalCommand}">
+                            <Image Source="/Icons/PayPalDonateButton.png" Width="92" />
+                        </Button>
+                        <TextBlock Text="or" HorizontalAlignment="Center" />
+                        <Button Command="{Binding DonatePatreonCommand}">
+                            <Image Source="/Icons/PatreonButton.png" Width="150" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
             </TabItem>
         </TabControl>
         

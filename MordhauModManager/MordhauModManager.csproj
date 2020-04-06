@@ -9,12 +9,17 @@
 
   <ItemGroup>
     <None Remove="Icons\installed_icon.png" />
+    <None Remove="Icons\PatreonButton.png" />
+    <None Remove="Icons\PayPalDonateButton.gif" />
+    <None Remove="Icons\PayPalDonateButton.png" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Icons\installed_icon.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <Resource Include="Icons\installed_icon.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Icons\PatreonButton.png" />
+    <Resource Include="Icons\PayPalDonateButton.png" />
   </ItemGroup>
 
   <ItemGroup>
