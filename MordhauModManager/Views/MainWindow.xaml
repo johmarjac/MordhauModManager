@@ -31,8 +31,23 @@
 
         <Menu Grid.Row="0">
             <MenuItem Header="Program">
-                <MenuItem Header="Choose Mordhau Folder" Command="{Binding MordhauFolderSelectCommand}" />
-                <MenuItem Header="Exit" Command="{Binding ExitCommand}" />
+                <MenuItem Header="Choose Mordhau Folder" Command="{Binding MordhauFolderSelectCommand}">
+                    <MenuItem.Icon>
+                        <Image Source="pack://application:,,,/Icons/folder_icon.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Exit" Command="{Binding ExitCommand}">
+                    <MenuItem.Icon>
+                        <Image Source="pack://application:,,,/Icons/close_icon.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="Mods">
+                <MenuItem Header="Reload" Command="{Binding ReloadModsCommand}" IsEnabled="{Binding IsReadyForInput}">
+                    <MenuItem.Icon>
+                        <Image Source="pack://application:,,,/Icons/refresh_icon.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
         </Menu>
 
@@ -55,8 +70,8 @@
                     </DockPanel>
 
                     <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
-                        <TextBlock Grid.Row="0" Text="Sort by" VerticalAlignment="Center" Margin="5" />
-                        <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding SortMethods}" SelectedItem="{Binding SortMethod}" Margin="5" HorizontalContentAlignment="Center" IsEnabled="{Binding IsReadyForInput}" />
+                        <TextBlock Grid.Row="0" Text="Display" VerticalAlignment="Center" Margin="5" />
+                        <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding FilterMethods}" SelectedItem="{Binding FilterMethod}" Margin="5" HorizontalContentAlignment="Center" IsEnabled="{Binding IsReadyForInput}" />
                     </StackPanel>
 
                     <ListView Grid.Row="1" Grid.ColumnSpan="2" ItemsSource="{Binding AvailableMods}" SelectionMode="Single" SelectedItem="{Binding SelectedAvailableMod}">

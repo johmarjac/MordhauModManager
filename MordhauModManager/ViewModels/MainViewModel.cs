@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -36,6 +35,8 @@ namespace MordhauModManager.ViewModels
         }
 
         public ICommand MordhauFolderSelectCommand { get; }
+
+        public ICommand ReloadModsCommand { get; }
 
         public ICommand InstallRemoveModCommand { get; }
 
@@ -77,23 +78,15 @@ namespace MordhauModManager.ViewModels
             }
         }
 
-        private ESortMethod sortMethod;
-        public ESortMethod SortMethod
+        private EFilterMethod filterMethod;
+        public EFilterMethod FilterMethod
         {
-            get => sortMethod;
+            get => filterMethod;
             set
             {
-                sortMethod = value;
-
-                AvailableModView.SortDescriptions.Clear();
-
-                if (sortMethod == ESortMethod.DateAdded)
-                    AvailableModView.SortDescriptions.Add(new SortDescription("DateAdded", ListSortDirection.Descending));
-                else if (sortMethod == ESortMethod.LastUpdated)
-                    AvailableModView.SortDescriptions.Add(new SortDescription("DateUpdated", ListSortDirection.Descending));
-
+                filterMethod = value;
                 AvailableModView.Refresh();
-                OnPropertyChanged(new PropertyChangedEventArgs(nameof(SortMethod)));
+                OnPropertyChanged(new PropertyChangedEventArgs(nameof(FilterMethod)));
             }
         }
 
@@ -111,30 +104,45 @@ namespace MordhauModManager.ViewModels
             }
         }
 
-        public IEnumerable<ESortMethod> SortMethods
+        public IEnumerable<EFilterMethod> FilterMethods
         {
             get
             {
-                return Enum.GetValues(typeof(ESortMethod))
-                    .Cast<ESortMethod>();
+                return Enum.GetValues(typeof(EFilterMethod))
+                    .Cast<EFilterMethod>();
             }
         }
 
         public MainViewModel()
         {
+            ReloadModsCommand = new RelayCommand(ReloadMods_Click);
             MordhauFolderSelectCommand = new RelayCommand(ChooseMordhauFolderDialog);
             ExitCommand = new RelayCommand(() => { System.Windows.Application.Current.Shutdown(); });
             
             AvailableMods = new ObservableCollection<ModObject>();
             AvailableModView = CollectionViewSource.GetDefaultView(AvailableMods);
             AvailableModView.Filter = GetAvailableModViewFilter;
-            AvailableModView.SortDescriptions.Add(new SortDescription("DateAdded", ListSortDirection.Descending));
 
             InstallRemoveModCommand = new RelayCommand(InstallRemoveMod_Click);
             UpdateModCommand = new RelayCommand(UpdateMod_Click);
 
             DonatePayPalCommand = new RelayCommand(DonatePayPal_Click);
             DonatePatreonCommand = new RelayCommand(DonatePatreon_Click);
+        }
+
+        private async void ReloadMods_Click()
+        {
+            AvailableMods.Clear();
+
+            AppStatus = "Reading mod.io api...";
+            ModioHelper.LoadModioAccessToken(MordhauHelper.GetModioPath());
+            await LoadMySubscriptions();
+            await LoadAvailableMods();
+            await CheckIfModsAreUp2Date();
+
+            IsReadyForInput = true;
+
+            AppStatus = "Ready";
         }
 
         private async void UpdateMod_Click()
@@ -147,7 +155,7 @@ namespace MordhauModManager.ViewModels
             await RemoveModLogic(modReference);
             await InstallModLogic(modReference);
 
-            SortMethod = ESortMethod.InstalledOnly;
+            FilterMethod = EFilterMethod.InstalledOnly;
         }
 
         private void DonatePatreon_Click()
@@ -273,9 +281,9 @@ namespace MordhauModManager.ViewModels
             if (obj is ModObject mo)
             {
                 var DoesNameContainsFilterText = mo.Name != null && mo.Name.Contains(FilterText, StringComparison.InvariantCultureIgnoreCase);
-                var CheckInstalled = SortMethod == ESortMethod.InstalledOnly && mo.IsInstalled;
-                var CheckUpdates = SortMethod == ESortMethod.UpdateAvailable && mo.IsUpdateAvailable && mo.IsInstalled;
-                var CheckRest = SortMethod == ESortMethod.DateAdded || SortMethod == ESortMethod.LastUpdated;
+                var CheckInstalled = FilterMethod == EFilterMethod.InstalledOnly && mo.IsInstalled;
+                var CheckUpdates = FilterMethod == EFilterMethod.UpdateAvailable && mo.IsUpdateAvailable && mo.IsInstalled;
+                var CheckRest = FilterMethod == EFilterMethod.All;
 
                 return DoesNameContainsFilterText && (CheckInstalled || CheckUpdates || CheckRest);
             }
@@ -306,7 +314,7 @@ namespace MordhauModManager.ViewModels
             MordhauHelper.LocateMordhauAppManifestFile();
 
             MordhauHelper.MordhauInstallationFolder = SteamHelper.GetInstallDirFromAppManifest(MordhauHelper.MordhauAppManifestFile);
-            if(!Directory.Exists(MordhauHelper.MordhauInstallationFolder))
+            if(!IsValidMordhauFolder)
             {
                 MessageBox.Show("Unable to find Mordhau installation, please locate the Mordhau Folder yourself in the following dialog.", "Steam not found", MessageBoxButton.OK, MessageBoxImage.Warning);
                 ChooseMordhauFolderDialog();
@@ -371,7 +379,7 @@ namespace MordhauModManager.ViewModels
             }
 
             if(foundUpdates)
-                SortMethod = ESortMethod.UpdateAvailable;
+                FilterMethod = EFilterMethod.UpdateAvailable;
 
             AvailableModView.Refresh();
         }

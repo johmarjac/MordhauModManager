@@ -1,9 +1,8 @@
 ﻿namespace MordhauModManager.Model
 {
-    public enum ESortMethod
+    public enum EFilterMethod
     {
-        DateAdded,
-        LastUpdated,
+        All,
         InstalledOnly,
         UpdateAvailable,
     }

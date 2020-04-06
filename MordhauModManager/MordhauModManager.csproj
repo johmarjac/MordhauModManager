@@ -8,20 +8,26 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Icons\close_icon.png" />
+    <None Remove="Icons\folder_icon.png" />
     <None Remove="Icons\installed_icon.png" />
     <None Remove="Icons\PatreonButton.png" />
     <None Remove="Icons\PayPalDonateButton.gif" />
     <None Remove="Icons\PayPalDonateButton.png" />
+    <None Remove="Icons\refresh_icon.png" />
     <None Remove="Icons\remove_icon.png" />
     <None Remove="Icons\updateavailable_icon.png" />
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Icons\close_icon.png" />
+    <Resource Include="Icons\folder_icon.png" />
     <Resource Include="Icons\installed_icon.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Icons\PatreonButton.png" />
     <Resource Include="Icons\PayPalDonateButton.png" />
+    <Resource Include="Icons\refresh_icon.png" />
     <Resource Include="Icons\remove_icon.png" />
     <Resource Include="Icons\updateavailable_icon.png" />
   </ItemGroup>
