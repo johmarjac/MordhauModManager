@@ -106,8 +106,6 @@ namespace MordhauModManager.ViewModels
             }
         }
 
-        public ObservableCollection<ModObject> InstalledMods { get; }
-
         public IEnumerable<ESortMethod> SortMethods
         {
             get
@@ -120,20 +118,17 @@ namespace MordhauModManager.ViewModels
         public MainViewModel()
         {
             MordhauFolderSelectCommand = new RelayCommand(ChooseMordhauFolderDialog);
+            
             AvailableMods = new ObservableCollection<ModObject>();
             AvailableModView = CollectionViewSource.GetDefaultView(AvailableMods);
             AvailableModView.Filter = GetAvailableModViewFilter;
             AvailableModView.SortDescriptions.Add(new SortDescription("DateAdded", ListSortDirection.Descending));
-            InstalledMods = new ObservableCollection<ModObject>();
+
             InstallRemoveModCommand = new RelayCommand(InstallRemoveMod_Click);
-            UninstallModCommand = new RelayCommand(UninstallMod_Click);
+            
+
             DonatePayPalCommand = new RelayCommand(DonatePayPal_Click);
             DonatePatreonCommand = new RelayCommand(DonatePatreon_Click);
-        }
-
-        private void UninstallMod_Click()
-        {
-
         }
 
         private void DonatePatreon_Click()
@@ -166,16 +161,86 @@ namespace MordhauModManager.ViewModels
             catch (Exception) { }
         }
 
-        private void InstallRemoveMod_Click()
+        private async void InstallRemoveMod_Click()
         {
-            
+            if (SelectedAvailableMod == null)
+                return;
+
+            if(!SelectedAvailableMod.IsInstalled)
+            {
+                await InstallModLogic(SelectedAvailableMod);
+            }
+            else
+            {
+                await RemoveModLogic(SelectedAvailableMod);
+            }
         }
+
+        private async Task InstallModLogic(ModObject modToInstall)
+        {
+            modToInstall.IsInstalling = true;
+
+            // Subscribe to mod then download and install
+            var modObject = await ModioHelper.SubscribeToModObject(modToInstall);
+            if (modObject != null)
+            {
+                // Install mod to mordhau
+                var result = await ModioHelper.DownloadAndInstallMod(modToInstall, MordhauHelper.GetModioPath());
+                
+                if(result)
+                {
+                    modToInstall.IsInstalled = true;
+                    modToInstall.IsInstalling = false;
+
+                    AvailableModView.Refresh();
+                }
+                else
+                {
+                    MessageBox.Show("Mod installation failed, please contact developer!", "Installation Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Subscribing to the mod failed, please contact developer!", "Subscription Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async Task RemoveModLogic(ModObject modToRemove)
+        {
+            modToRemove.IsInstalling = true;
+
+            // Unsubscribe from mod then remove local files
+            var result = await ModioHelper.UnsubscribeFromModObject(modToRemove);
+            if (result)
+            {
+                // Remove mod from mordhau
+                var result2 = await ModioHelper.RemoveModFromDisk(modToRemove, MordhauHelper.GetModioPath());
+
+                if(result2)
+                {
+                    modToRemove.IsInstalling = false;
+                    modToRemove.IsInstalled = false;
+                    AvailableModView.Refresh();
+                }
+                else
+                {
+                    MessageBox.Show("Uninstalling mod failed, please contact developer!", "Uninstallation Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Unsubscribing from the mod failed, please contact developer!", "Unsubscription Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
 
         private bool GetAvailableModViewFilter(object obj)
         {
             if (obj is ModObject mo)
             {
-                return mo.Name != null && mo.Name.Contains(FilterText, StringComparison.InvariantCultureIgnoreCase);
+                var b1 = mo.Name != null && mo.Name.Contains(FilterText, StringComparison.InvariantCultureIgnoreCase);
+                var b2 = SortMethod != ESortMethod.InstalledOnly ||(SortMethod == ESortMethod.InstalledOnly && mo.IsInstalled);
+                return b1 && b2;
             }
             else
                 return false;
@@ -185,6 +250,7 @@ namespace MordhauModManager.ViewModels
         {
             AppStatus = "Looking for Steam...";
 
+            MordhauHelper.LocateMordhauAppManifestFile();
             if (!SteamHelper.IsSteamInstalled() || MordhauHelper.MordhauAppManifestFile == string.Empty)
             {
                 MessageBox.Show("Unable to find Steam installation, please locate the Mordhau Folder yourself in the following dialog.", "Steam not found", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -211,8 +277,6 @@ namespace MordhauModManager.ViewModels
         {
             int offset = 0;
 
-            InstalledMods.Clear();
-
             GetModsResponse response = null;
 
             while (true)
@@ -222,7 +286,8 @@ namespace MordhauModManager.ViewModels
 
                 foreach (var mod in response.ModObjects)
                 {
-                    InstalledMods.Add(mod);
+                    mod.IsInstalled = true;
+                    AvailableMods.Add(mod);
                 }
 
                 if (offset >= response.TotalResults)
@@ -234,8 +299,6 @@ namespace MordhauModManager.ViewModels
         {
             int offset = 0;
 
-            AvailableMods.Clear();
-
             GetModsResponse response = null;
 
             while(true)
@@ -245,10 +308,8 @@ namespace MordhauModManager.ViewModels
 
                 foreach (var mod in response.ModObjects)
                 {
-                    if (InstalledMods.Any(x => x.Id == mod.Id))
-                        mod.IsInstalled = true;
-
-                    AvailableMods.Add(mod);
+                    if (!AvailableMods.Any(x => x.Id == mod.Id))
+                        AvailableMods.Add(mod);
                 }
 
                 if (offset >= response.TotalResults)

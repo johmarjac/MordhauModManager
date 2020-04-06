@@ -27,6 +27,9 @@ namespace MordhauModManager.Model.Modio
         [JsonProperty("name")]
         public string Name { get; set; }
 
+        [JsonProperty("modfile")]
+        public ModfileObject ModFileObject { get; set; }
+
         private bool isInstalled;
         public bool IsInstalled
         {
@@ -39,9 +42,31 @@ namespace MordhauModManager.Model.Modio
             }
         }
 
+        private bool isInstalling;
+        public bool IsInstalling
+        {
+            get => isInstalling;
+            set
+            {
+                isInstalling = value;
+                OnPropertyChanged(new PropertyChangedEventArgs(nameof(IsInstalling)));
+            }
+        }
+
+        private int installProgress;
+        public int InstallProgress
+        {
+            get => installProgress;
+            set
+            {
+                installProgress = value;
+                OnPropertyChanged(new PropertyChangedEventArgs(nameof(InstallProgress)));
+            }
+        }
+
         public string InstallRemoveText
         {
-            get => IsInstalled ? "Remove Mod" : "Install Mod";
+            get => IsInstalled ? "Uninstall Mod" : "Install Mod";
         }
     }
 }

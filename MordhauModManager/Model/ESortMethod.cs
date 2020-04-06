@@ -3,6 +3,7 @@
     public enum ESortMethod
     {
         DateAdded,
-        LastUpdated
+        LastUpdated,
+        InstalledOnly
     }
 }
