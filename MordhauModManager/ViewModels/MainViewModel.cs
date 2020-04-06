@@ -140,7 +140,7 @@ namespace MordhauModManager.ViewModels
         {
             AppStatus = "Looking for Steam...";
 
-            if (!SteamHelper.IsSteamInstalled())
+            if (!SteamHelper.IsSteamInstalled() || MordhauHelper.MordhauAppManifestFile == string.Empty)
             {
                 MessageBox.Show("Unable to find Steam installation, please locate the Mordhau Folder yourself in the following dialog.", "Steam not found", MessageBoxButton.OK, MessageBoxImage.Warning);
                 ChooseMordhauFolderDialog();
@@ -149,12 +149,6 @@ namespace MordhauModManager.ViewModels
 
             AppStatus = "Looking for Mordhau App Manifest...";
             MordhauHelper.LocateMordhauAppManifestFile();
-
-            if (MordhauHelper.MordhauAppManifestFile == string.Empty)
-            {
-                MessageBox.Show("Unable to locate Mordhau's App Manifest File, please contact developer!", "Manifest missing", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
 
             MordhauHelper.MordhauInstallationFolder = SteamHelper.GetInstallDirFromAppManifest(MordhauHelper.MordhauAppManifestFile);
 
@@ -217,7 +211,7 @@ namespace MordhauModManager.ViewModels
             }
         }
 
-        private void ChooseMordhauFolderDialog()
+        private async void ChooseMordhauFolderDialog()
         {
             var fbd = new FolderBrowserDialog();
             if (fbd.ShowDialog() == DialogResult.OK)
@@ -234,8 +228,19 @@ namespace MordhauModManager.ViewModels
                 else
                 {
                     OnPropertyChanged(new PropertyChangedEventArgs(nameof(IsValidMordhauFolder)));
+
+                    AppStatus = "Reading mod.io api...";
+                    ModioHelper.LoadModioAccessToken(MordhauHelper.GetModioPath());
+                    await LoadMySubscriptions();
+                    await LoadAvailableMods();
+
+                    IsReadyForInput = true;
+
+                    AppStatus = "Ready";
                 }
             }
+            else
+                AppStatus = "Mordhau Installation Folder invalid!";
         }
 
         public void OnClosing()
