@@ -10,6 +10,7 @@
   <ItemGroup>
     <None Remove="Icons\close_icon.png" />
     <None Remove="Icons\folder_icon.png" />
+    <None Remove="Icons\info_icon.png" />
     <None Remove="Icons\installed_icon.png" />
     <None Remove="Icons\PatreonButton.png" />
     <None Remove="Icons\PayPalDonateButton.gif" />
@@ -22,6 +23,7 @@
   <ItemGroup>
     <Resource Include="Icons\close_icon.png" />
     <Resource Include="Icons\folder_icon.png" />
+    <Resource Include="Icons\info_icon.png" />
     <Resource Include="Icons\installed_icon.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
@@ -34,6 +36,11 @@
 
   <ItemGroup>
     <PackageReference Include="Artentus.WPFCore" Version="1.0.0.1" />
+    <PackageReference Include="Costura.Fody" Version="4.1.0" />
+    <PackageReference Include="Fody" Version="6.1.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Gameloop.Vdf" Version="0.5.0" />
     <PackageReference Include="Gameloop.Vdf.JsonConverter" Version="0.2.0" />
   </ItemGroup>

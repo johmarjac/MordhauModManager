@@ -49,6 +49,13 @@
                     </MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
+            <MenuItem Header="About">
+                <MenuItem Header="Info" Command="{Binding InfoCommand}">
+                    <MenuItem.Icon>
+                        <Image Source="pack://application:,,,/Icons/info_icon.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
         </Menu>
 
         <TabControl Grid.Row="1">

@@ -38,6 +38,8 @@ namespace MordhauModManager.ViewModels
 
         public ICommand ReloadModsCommand { get; }
 
+        public ICommand InfoCommand { get; }
+
         public ICommand InstallRemoveModCommand { get; }
 
         public ICommand UpdateModCommand { get; }
@@ -116,6 +118,7 @@ namespace MordhauModManager.ViewModels
         public MainViewModel()
         {
             ReloadModsCommand = new RelayCommand(ReloadMods_Click);
+            InfoCommand = new RelayCommand(Info_Click);
             MordhauFolderSelectCommand = new RelayCommand(ChooseMordhauFolderDialog);
             ExitCommand = new RelayCommand(() => { System.Windows.Application.Current.Shutdown(); });
             
@@ -128,6 +131,11 @@ namespace MordhauModManager.ViewModels
 
             DonatePayPalCommand = new RelayCommand(DonatePayPal_Click);
             DonatePatreonCommand = new RelayCommand(DonatePatreon_Click);
+        }
+
+        private void Info_Click()
+        {
+            MessageBox.Show("Mordhau Mod Manager by johmarjac\n\nIf you find bugs let me know. You can contact me in Discord: johmarjac#3365\n\nHave Fun!", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private async void ReloadMods_Click()
