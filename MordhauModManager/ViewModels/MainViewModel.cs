@@ -301,6 +301,8 @@ namespace MordhauModManager.ViewModels
 
         public async void OnLoaded()
         {
+            await CheckUpdate();
+
             if(MordhauHelper.IsMordhauRunning())
             {
                 MessageBox.Show("Mordhau is currently running, please close Mordhau first to reliably install and remove mods!", "Close Mordhau", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -344,6 +346,34 @@ namespace MordhauModManager.ViewModels
             IsReadyForInput = true;
 
             AppStatus = "Ready";
+        }
+
+        private async Task CheckUpdate()
+        {
+            var latestRelease = await UpdateHelper.GetLatestGitHubRelease();
+
+            if (latestRelease == null)
+                return;
+
+            if(latestRelease.tag_name != App.APP_VERSION && latestRelease.assets.Count > 0)
+            {
+                if(MessageBox.Show($"A new update ({latestRelease.tag_name})  was found. Do you want to install it now?", $"{latestRelease.tag_name} is here!", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        using (var p = new Process())
+                        {
+                            p.StartInfo.FileName = latestRelease.assets[0].browser_download_url;
+                            p.StartInfo.Verb = "open";
+                            p.StartInfo.UseShellExecute = true;
+                            p.Start();
+                        }
+
+                        System.Windows.Application.Current.Shutdown();
+                    }
+                    catch (Exception) { }
+                }
+            }
         }
 
         private async Task CheckIfModsAreUp2Date()

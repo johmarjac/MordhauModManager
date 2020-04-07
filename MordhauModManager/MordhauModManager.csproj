@@ -6,6 +6,7 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>mordhau_icon.ico</ApplicationIcon>
+    <Authors>johmarjac</Authors>
   </PropertyGroup>
 
   <ItemGroup>
