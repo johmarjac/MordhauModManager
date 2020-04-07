@@ -310,11 +310,17 @@ namespace MordhauModManager.ViewModels
 
             AppStatus = "Looking for Steam...";
 
-            MordhauHelper.LocateMordhauAppManifestFile();
-            if (!SteamHelper.IsSteamInstalled() || MordhauHelper.MordhauAppManifestFile == string.Empty)
+            if(!SteamHelper.IsSteamInstalled())
             {
                 MessageBox.Show("Unable to find Steam installation, please locate the Mordhau Folder yourself in the following dialog.", "Steam not found", MessageBoxButton.OK, MessageBoxImage.Warning);
                 ChooseMordhauFolderDialog();
+                return;
+            }
+
+            MordhauHelper.LocateMordhauAppManifestFile();
+            if (MordhauHelper.MordhauAppManifestFile == string.Empty)
+            {
+                MessageBox.Show("Unable to find Mordhau App Manifest, please contact developer.", "Manifest not found", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 

@@ -39,11 +39,6 @@
 
   <ItemGroup>
     <PackageReference Include="Artentus.WPFCore" Version="1.0.0.1" />
-    <PackageReference Include="Costura.Fody" Version="4.1.0" />
-    <PackageReference Include="Fody" Version="6.1.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="Gameloop.Vdf" Version="0.5.0" />
     <PackageReference Include="Gameloop.Vdf.JsonConverter" Version="0.2.0" />
   </ItemGroup>
