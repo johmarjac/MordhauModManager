@@ -5,6 +5,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationIcon>mordhau_icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,6 +13,7 @@
     <None Remove="Icons\folder_icon.png" />
     <None Remove="Icons\info_icon.png" />
     <None Remove="Icons\installed_icon.png" />
+    <None Remove="Icons\mordhau_icon.ico" />
     <None Remove="Icons\PatreonButton.png" />
     <None Remove="Icons\PayPalDonateButton.gif" />
     <None Remove="Icons\PayPalDonateButton.png" />
@@ -27,6 +29,7 @@
     <Resource Include="Icons\installed_icon.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Icons\mordhau_icon.ico" />
     <Resource Include="Icons\PatreonButton.png" />
     <Resource Include="Icons\PayPalDonateButton.png" />
     <Resource Include="Icons\refresh_icon.png" />
