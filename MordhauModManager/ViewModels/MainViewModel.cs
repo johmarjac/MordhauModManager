@@ -339,6 +339,13 @@ namespace MordhauModManager.ViewModels
 
             AppStatus = "Reading mod.io api...";
             ModioHelper.LoadModioAccessToken(MordhauHelper.GetModioPath());
+            if(ModioHelper.AccessToken == null)
+            {
+                MessageBox.Show("Unable to read authentication.json, make sure you ran MORDHAU at least once and played on a modded server at least once before using this tool.", "Authentication.json not found", MessageBoxButton.OK, MessageBoxImage.Warning);
+                System.Windows.Application.Current.Shutdown();
+                return;
+            }
+
             await LoadMySubscriptions();
             await LoadAvailableMods();
             await CheckIfModsAreUp2Date();
