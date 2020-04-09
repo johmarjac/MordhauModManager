@@ -1,0 +1,1 @@
+dotnet publish  --framework netcoreapp3.1 -r win10-x64 --self-contained true -c Release /p:PublishSingleFile=true /p:PublishTrimmed=true

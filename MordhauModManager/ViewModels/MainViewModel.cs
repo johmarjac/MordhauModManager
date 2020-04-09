@@ -362,7 +362,7 @@ namespace MordhauModManager.ViewModels
             if (latestRelease == null)
                 return;
 
-            if(latestRelease.tag_name != App.APP_VERSION && latestRelease.assets.Count > 0)
+            if(latestRelease.tag_name != App.APP_VERSION && latestRelease.assets.Count >= 1)
             {
                 if(MessageBox.Show($"A new update ({latestRelease.tag_name})  was found. Do you want to install it now?", $"{latestRelease.tag_name} is here!", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
@@ -370,7 +370,7 @@ namespace MordhauModManager.ViewModels
                     {
                         using (var p = new Process())
                         {
-                            p.StartInfo.FileName = latestRelease.assets[0].browser_download_url;
+                            p.StartInfo.FileName = "https://github.com/johmarjac/MordhauModManager/releases/latest";
                             p.StartInfo.Verb = "open";
                             p.StartInfo.UseShellExecute = true;
                             p.Start();

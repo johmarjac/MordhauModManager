@@ -25,7 +25,7 @@ namespace MordhauModManager.Core
 
         public FileLogger()
         {
-            fileStream = new FileStream("session.log", FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+            fileStream = new FileStream("session.log", FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
             fileWriter = new StreamWriter(fileStream);
         }
 
