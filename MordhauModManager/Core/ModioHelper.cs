@@ -78,6 +78,10 @@ namespace MordhauModManager.Core
                 {
                     return JsonConvert.DeserializeObject<ModObject>(await response.Content.ReadAsStringAsync());
                 }
+                else if(response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    return JsonConvert.DeserializeObject<ModObject>(await response.Content.ReadAsStringAsync());
+                }
                 else
                     return null;
             }

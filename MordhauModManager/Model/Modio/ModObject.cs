@@ -32,6 +32,9 @@ namespace MordhauModManager.Model.Modio
         [JsonProperty("modfile")]
         public ModfileObject ModFileObject { get; set; }
 
+        [JsonProperty("error")]
+        public ErrorObject Error { get; set; }
+
         [JsonIgnore]
         private bool isInstalled;
 
