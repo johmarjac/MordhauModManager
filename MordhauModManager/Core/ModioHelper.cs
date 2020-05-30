@@ -187,8 +187,9 @@ namespace MordhauModManager.Core
                     return true;
                 });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                FileLogger.Instance.WriteLine(ex.ToString());
                 return false;
             }
         }
