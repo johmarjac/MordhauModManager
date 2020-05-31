@@ -1,4 +1,5 @@
 ﻿using MordhauModManager.Core;
+using MordhauModManager.Extensions;
 using MordhauModManager.Model;
 using MordhauModManager.Model.Modio;
 using MordhauModManager.Model.Modio.Responses;
